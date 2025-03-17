@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Power Family Présences</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        /* Style pour le conteneur du tableau pour le centrer */
+        .table-container {
+            display: flex; /* Utilisation de flexbox pour le centrage */
+            justify-content: center; /* Centrer horizontalement */
+            margin-left: 3mm; /* Marge à gauche de 3mm */
+            margin-right: 3mm; /* Marge à droite de 3mm */
+            width: auto; /* Ajuster la largeur automatiquement au contenu */
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            width: 100%; /* Le tableau prend 100% de la largeur de son conteneur */
+            max-width: 1000px; /* Optionnel : pour limiter la largeur maximale du tableau si nécessaire */
+        }
+        th, td { border: 1px solid #C0C0C0; padding: 5px; text-align: left; }
+        .code-input { width: 29px; text-align: center; }
+
+        /* Couleurs des lignes */
+        tr:nth-child(3n+1) { background-color: #B0E2FF; }
+        tr:nth-child(3n+2) { background-color: #D9D9D9; }
+        tr:nth-child(3n+3) { background-color: #B0E2FF; }
+
+        .valid { background-color: #B0E2FF !important; }
+        .invalid { background-color: #FF0000 !important; }
+
+        /* Style du bouton */
+        #printBtn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        #totalSection {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        /* Styles pour les nouvelles sections de listes */
+        .present-students-section, .absent-students-section {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .present-students-section {
+            background-color: rgba(173, 216, 230, 0.3); /* Bleu transparent */
+        }
+
+        .absent-students-section {
+            background-color: rgba(255, 182, 193, 0.3); /* Rose transparent */
+        }
+
+        .present-students-section h3, .absent-students-section h3 {
+            margin-top: 0;
+        }
+         .fraude-students-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #ffe0b2;
+            border-radius: 5px;
+        }
+         .fraude-students-section h3 {
+            margin-top: 0;
+        }
+
+        #resetBtn {
+            padding: 10px 20px;
+            background-color: #f44336; /* Rouge */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
+      import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyDpQ0w3azdx8Gl6K5GDVACzZi2eBm63wVw",
+        authDomain: "presences-hmb-tech.firebaseapp.com",
+        projectId: "presences-hmb-tech",
+        storageBucket: "presences-hmb-tech.firebasestorage.app",
+        messagingSenderId: "106820587993",
+        appId: "1:106820587993:web:b5adf2e81bb5c8359a09c8",
+        measurementId: "G-Z28D2R4FQC"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const db = getFirestore(app);
+      const attendanceCollection = collection(db, 'attendances');
+
+        // Liste complète des élèves avec codes AAA000+
+        const students = [
+            { name: "IBEMBA – NTEMBI", code: "AAA000" },
+            { name: "KITAMBWE - MUDIMBI", code: "AAA001" },
+            { name: "MBALA - LUBAKI", code: "AAA002" },
+            { name: "MBALA - MBIMBA", code: "AAA003" },
+            { name: "MBAMBINA - WAZANGBA", code: "AAA004" },
+            { name: "MBANDJO – IYELE", code: "AAA005" },
+            { name: "MBATU - KIMWANGA", code: "AAA006" },
+            { name: "MBAYA – BAYA – HANS", code: "AAA007" },
+            { name: "MBAYA – FAUSTIN", code: "AAA008" },
+            { name: "MBAYO – BONONGE", code: "AAA009" },
+            { name: "MBEKU – ELEKWA", code: "AAA010" },
+            { name: "MBELE – KALUSUTI", code: "AAA011" },
+            { name: "MBELENGA-MBOMBAWANDE", code: "AAA012" },
+            { name: "MBEMA – ZONGO", code: "AAA013" },
+            { name: "MBEMBA – KUKU", code: "AAA014" },
+            { name: "MBENGI – MBO", code: "AAA015" },
+            { name: "MBIMBA - MUFUNGIZI", code: "AAA016" },
+            { name: "MBIRIZE - IMANI", code: "AAA017" },
+            { name: "MBO – MFUMU", code: "AAA018" },
+            { name: "MBO – WEMBA", code: "AAA019" },
+            { name: "MBOBO – LUPOMBO", code: "AAA020" },
+            { name: "MBOKO –NTOKO", code: "AAA021" },
+            { name: "MBOLOLO – MWIMPE", code: "AAA022" },
+            { name: "MBOMA – KALAMBA", code: "AAA023" },
+            { name: "MBOMA – NDOSALA", code: "AAA024" },
+            { name: "MBOMA – TAUBALA", code: "AAA025" },
+            { name: "MBOSO – MAWETE", code: "AAA026" },
+            { name: "MBUAKI - MIEZI", code: "AAA027" },
+            { name: "MBUBA - NDONGALA", code: "AAA028" },
+            { name: "MBUEZO – LUNGENY", code: "AAA029" },
+            { name: "MBUKA - MATUVANG", code: "AAA030" },
+            { name: "MBUKU – KISALU", code: "AAA031" },
+            { name: "MBULA – MBANZA", code: "AAA032" },
+            { name: "MBULAYI - TSHIBANGU", code: "AAA033" },
+            { name: "MBUMBA – NDEMBE", code: "AAA034" },
+            { name: "MBUYA - MUJANI", code: "AAA035" },
+            { name: "MBUYAMBA - TSHISWAKA", code: "AAA036" },
+            { name: "MBUYI – KOLE", code: "AAA037" },
+            { name: "MBUYI – NDAYE", code: "AAA038" },
+            { name: "MBWELIMA - TANGA", code: "AAA039" },
+            { name: "MBWITI - KUYAKANA", code: "AAA040" },
+            { name: "MEKANDA – IWOKO", code: "AAA041" },
+            { name: "MENEMENE – NKOSI", code: "AAA042" },
+            { name: "MENGA - MABALA", code: "AAA043" },
+            { name: "MESA – MUSALU", code: "AAA044" },
+            { name: "MFULUNGANI -NFULAMESO", code: "AAA045" },
+            { name: "MIANTISE – NDOOLE", code: "AAA046" },
+            { name: "MIBO – MPEWA", code: "AAA047" },
+            { name: "MIKADI – MIKADI", code: "AAA048" },
+            { name: "MIKOBI – BELAPIO", code: "AAA049" },
+            { name: "MIKUBA – ALFANI", code: "AAA050" },
+            { name: "MILONGA - MUDIMBANYA", code: "AAA051" },
+            { name: "MILUMBU – KABUYA", code: "AAA052" },
+            { name: "MINGA – KWETE", code: "AAA053" },
+            { name: "MINGA – MBATSHI", code: "AAA054" },
+            { name: "MINGA – PONGO", code: "AAA055" },
+            { name: "MIOMA – KINGOMBE", code: "AAA056" },
+            { name: "MIOMO – MAKANDA", code: "AAA057" },
+            { name: "MISENGABU - TEGRA", code: "AAA058" },
+            { name: "MISIONO – MVUNGU", code: "AAA059" },
+            { name: "MITSHIABU - ILUNGA", code: "AAA060" },
+            { name: "MITUNGA - MUBIANGAT", code: "AAA061" },
+            { name: "MITUNGINI – LUZOLO", code: "AAA062" },
+            { name: "MOBAO – MOPIA", code: "AAA063" },
+            { name: "MOBONDA - BOYELE", code: "AAA064" },
+            { name: "MODJA – ETOTI", code: "AAA065" },
+            { name: "MOGBOKULA-NDOLE", code: "AAA066" },
+            { name: "MOHELE – MATUKA", code: "AAA067" },
+            { name: "MOKIE - INKINI", code: "AAA068" },
+            { name: "MOKILI - KATSHULU", code: "AAA069" },
+            { name: "MOKOSI – KETA", code: "AAA070" },
+            { name: "MOKOYO-BOKIANGA", code: "AAA071" },
+            { name: "MOKUBA – BAPELE", code: "AAA072" },
+            { name: "MOKUTU – GOLO", code: "AAA073" },
+            { name: "MOLITHIO – NDOPO", code: "AAA074" },
+            { name: "MOMELE – BOKILA", code: "AAA075" },
+            { name: "MONGA - MOKESA", code: "AAA076" },
+            { name: "MONGBANI – AKOSU", code: "AAA077" },
+            { name: "MONSENGO-MAFISANGO", code: "AAA078" },
+            { name: "MONSENGO - NTWABOY", code: "AAA079" },
+            { name: "MOONGO - BOMPUSA", code: "AAA080" },
+            { name: "MOPAYI – BOKUNGU", code: "AAA081" },
+            { name: "MOPIA - BENIE", code: "AAA082" },
+            { name: "MOPINI – NGOBILA", code: "AAA083" },
+            { name: "MOPOLO – LENGO", code: "AAA084" },
+            { name: "MOTOKWA - DIDO", code: "AAA085" },
+            { name: "MOUTSIEKOU - PANDI", code: "AAA086" },
+            { name: "MOWENI – BOPOPI", code: "AAA087" },
+            { name: "MPAMALEO - BOSONTIA", code: "AAA088" },
+            { name: "MPANA - NGAMBIELI", code: "AAA089" },
+            { name: "MPATA - LITUMBE", code: "AAA090" },
+            { name: "MPAY – NKE", code: "AAA091" },
+            { name: "MPELA – BAWESI", code: "AAA092" },
+            { name: "MPEMBE – BASSA", code: "AAA093" },
+            { name: "MPENGELE – PONGO", code: "AAA094" },
+            { name: "MPETSHI - BANGONGO", code: "AAA095" },
+            { name: "MPEYA – LINGONGO", code: "AAA096" },
+            { name: "MWANGANI - KATIMUKA", code: "AAA097" },
+            { name: "NOYO – MUKENDI", code: "AAA098" }
+        ];
+
+let fraudeStudents =; // Tableau pour stocker les étudiants frauduleux
+        let presentStudents =; // Tableau pour stocker les étudiants présents
+        let absentStudents =; // Tableau pour stocker les étudiants absents
+
+
+        function renderList() {
+            const tbody = document.getElementById('studentList');
+            tbody.innerHTML = students.map((student, index) => `
+                <tr id="row-${index}">
+                    <td>${index + 1}</td>
+                    <td>${student.name}</td>
+                    <td>
+                        <input class="code-input" type="password" id="code-input-${index}"
+                               oninput="validateCode(${index}, this.value)">
+                        <span id="status-${index}" style="display:none;">Présent</span>
+                    </td>
+                    <td id="textStatus-${index}">Absent</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateTotals() {
+            let present = 0, absent = 0, fraude = 0;
+            presentStudents =; // Réinitialiser la liste des présents
+            absentStudents =;  // Réinitialiser la liste des absents
+
+
+            students.forEach((student, index) => {
+                const status = document.getElementById(`textStatus-${index}`).textContent;
+                if(status === "Présent") {
+                    present++;
+                    presentStudents.push(student.name); // Ajouter à la liste des présents
+                }
+                else if(status === "Fraudeur") fraude++;
+                else {
+                    absent++;
+                    absentStudents.push(student.name); // Ajouter à la liste des absents
+                }
+            });
+
+            document.getElementById('totalPresent').textContent = present;
+            document.getElementById('totalAbsent').textContent = absent;
+            document.getElementById('totalFraude').textContent = fraude;
+
+            updatePresentListDisplay(); // Mettre à jour la liste des présents
+            updateAbsentListDisplay();  // Mettre à jour la liste des absents
+        }
+
+        function updateFraudeListDisplay() {
+            const fraudeListElement = document.getElementById('fraudeStudentList');
+            fraudeListElement.innerHTML = ''; // Effacer la liste précédente
+
+            fraudeStudents.forEach(studentName => {
+                const li = document.createElement('li');
+                li.textContent = studentName;
+                fraudeListElement.appendChild(li);
+            });
+        }
+
+        function updatePresentListDisplay() {
+            const presentListElement = document.getElementById('presentStudentList');
+            presentListElement.innerHTML = '';
+
+            presentStudents.forEach(studentName => {
+                const li = document.createElement('li');
+                li.textContent = studentName;
+                presentListElement.appendChild(li);
+            });
+        }
+
+        function updateAbsentListDisplay() {
+            const absentListElement = document.getElementById('absentStudentList');
+            absentListElement.innerHTML = '';
+
+            absentStudents.forEach(studentName => {
+                const li = document.createElement('li');
+                li.textContent = studentName;
+                absentListElement.appendChild(li);
+            });
+        }
+
+
+        function validateCode(index, value) {
+            const row = document.getElementById(`row-${index}`);
+            const statusTextElement = document.getElementById(`textStatus-${index}`);
+            const statusSpanElement = document.getElementById(`status-${index}`);
+            const codeInputElement = document.getElementById(`code-input-${index}`);
+            const student = students[index];
+            const studentName = student.name;
+            const studentId = index.toString(); // Convertir l'index en string pour l'ID du document
+
+            const attendanceDocRef = doc(attendanceCollection, studentId); // Référence au document Firestore
+
+            if (value === student.code) {
+                row.classList.add('valid');
+                row.classList.remove('invalid');
+                statusTextElement.innerText = "Présent";
+                codeInputElement.style.display = 'none';
+                statusSpanElement.style.display = 'inline';
+
+                // Update Firebase
+                setDoc(attendanceDocRef, {
+                    status: "Présent",
+                    name: studentName,
+                    code: value
+                }).catch(error => {
+                    console.error("Error updating Firebase document: ", error);
+                });
+
+                // Retirer de la liste fraude, si présent
+                fraudeStudents = fraudeStudents.filter(name => name !== studentName);
+
+
+            } else if (value.length >= 6) {
+                row.classList.add('invalid');
+                row.classList.remove('valid');
+                statusTextElement.innerText = "Fraudeur";
+                codeInputElement.style.display = 'inline';
+                statusSpanElement.style.display = 'none';
+
+                // Update Firebase
+                setDoc(attendanceDocRef, {
+                    status: "Fraudeur",
+                    name: studentName,
+                    code: value
+                }).catch(error => {
+                    console.error("Error updating Firebase document: ", error);
+                });
+
+                // Ajouter à la liste fraude, si non présent
+                if (!fraudeStudents.includes(studentName)) {
+                    fraudeStudents.push(studentName);
+                }
+            } else {
+                row.classList.remove('valid', 'invalid');
+                statusTextElement.innerText = "Absent";
+                codeInputElement.style.display = 'inline';
+                statusSpanElement.style.display = 'none';
+
+                // Update Firebase
+                setDoc(attendanceDocRef, {
+                    status: "Absent",
+                    name: studentName,
+                    code: "" // Clear the code if absent
+                }).catch(error => {
+                    console.error("Error updating Firebase document: ", error);
+                });
+
+                // Retirer de la liste fraude, si présent
+                fraudeStudents = fraudeStudents.filter(name => name !== studentName);
+            }
+
+            updateTotals();
+            updateFraudeListDisplay(); // Mettre à jour la liste des frauduleux
+        }
+
+        function loadAttendance() {
+            getDocs(attendanceCollection).then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const studentId = doc.id; // L'ID du document est maintenant une string
+                    const index = parseInt(studentId); // Convertir en nombre pour l'index du tableau students
+                    if (students[index]) {
+                        const row = document.getElementById(`row-${index}`);
+                        const statusTextElement = document.getElementById(`textStatus-${index}`);
+                        const statusSpanElement = document.getElementById(`status-${index}`);
+                        const codeInputElement = document.getElementById(`code-input-${index}`);
+
+                        if (data.status === "Présent") {
+                            row.classList.add('valid');
+                            row.classList.remove('invalid');
+                            statusTextElement.innerText = "Présent";
+                            codeInputElement.style.display = 'none';
+                            statusSpanElement.style.display = 'inline';
+                            codeInputElement.value = data.code;
+                        } else if (data.status === "Fraudeur") {
+                            row.classList.add('invalid');
+                            row.classList.remove('valid');
+                            statusTextElement.innerText = "Fraudeur";
+                            codeInputElement.style.display = 'inline';
+                            statusSpanElement.style.display = 'none';
+                            codeInputElement.value = data.code;
+                            if (!fraudeStudents.includes(students[index].name)) {
+                                fraudeStudents.push(students[index].name);
+                            }
+                        } else {
+                            row.classList.remove('valid', 'invalid');
+                            statusTextElement.innerText = "Absent";
+                            codeInputElement.style.display = 'inline';
+                            statusSpanElement.style.display = 'none';
+                            codeInputElement.value = "";
+                        }
+                    }
+                });
+                updateTotals();
+                updateFraudeListDisplay();
+                updatePresentListDisplay();
+                updateAbsentListDisplay();
+            }).catch((error) => {
+                console.error("Error loading attendance from Firebase: ", error);
+            });
+        }
+
+        function resetAttendance() {
+            if (confirm("Êtes-vous sûr de vouloir réinitialiser toutes les présences ?")) {
+                getDocs(attendanceCollection).then(querySnapshot => {
+                    const batch = writeBatch(db);
+                    querySnapshot.forEach(doc => {
+                        const docRef = doc(attendanceCollection, doc.id);
+                        batch.delete(docRef);
+                    });
+                    return batch.commit();
+                }).then(() => {
+                    console.log("Attendance data reset successfully.");
+                    // Reset local UI
+                    fraudeStudents =;
+                    presentStudents =;
+                    absentStudents =;
+                    renderList();
+                    updateTotals();
+                    updateFraudeListDisplay();
+                    updatePresentListDisplay();
+                    updateAbsentListDisplay();
+                }).catch(error => {
+                    console.error("Error resetting attendance data: ", error);
+                });
+            }
+        }
+
+
+        // Initialiser le tableau et charger les présences au chargement de la page
+        renderList();
+        document.addEventListener('DOMContentLoaded', loadAttendance);
+
+
+    </script>
+</head>
+<body>
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.rdc-banner {
+    position: relative;
+    width: 100%;
+    height: 1cm;
+    overflow: hidden;
+}
+
+.color-wave {
+    width: 300%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        #0077B5,
+        #0077B5 33.33%,
+        #FFD700 33.33%,
+        #FFD700 66.66%,
+        #CE1126 66.66%,
+        #CE1126 100%
+    );
+    animation: slide 10s linear infinite;
+}
+
+@keyframes slide {
+    0% { transform: translateX(-66.66%); }
+    100% { transform: translateX(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="rdc-banner">
+    <div class="color-wave"></div>
+</div>
+
+</body>
+</html>
+
+
+    <h2>LISTE DES PRÉSENCES</h2>
+
+    <div class="table-container">  <table>
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Nom</th>
+                    <th>Code</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody id="studentList">
+                </tbody>
+        </table>
+    </div>
+
+    <button id="resetBtn" onclick="resetAttendance()">Réinitialiser les présences</button>
+
+    <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 5px;">
+        <h3>Statistiques en temps réel</h3>
+        <div style="display: flex; gap: 20px;">
+            <div style="padding: 10px; background: #d4edda; border-radius: 5px;">
+                Présents: <span id="totalPresent">0</span>
+            </div>
+            <div style="padding: 10px; background: #fff3cd; border-radius: 5px;">
+                Absents: <span id="totalAbsent">0</span>
+            </div>
+            <div style="padding: 10px; background: #f8d7da; border-radius: 5px;">
+                Frauduleux: <span id="totalFraude">0</span>
+            </div>
+        </div>
+    </div>
+
+<div class="fraude-students-section">
+        <h3>Étudiants avec code erroné</h3>
+        <ul id="fraudeStudentList">
+            </ul>
+    </div>
+
+    <div class="present-students-section">
+        <h3>Liste des étudiants présents</h3>
+        <ul id="presentStudentList">
+        </ul>
+    </div>
+
+    <div class="absent-students-section">
+        <h3>Liste des étudiants absents</h3>
+        <ul id="absentStudentList">
+        </ul>
+    </div>
+
+
+</body>
+</html>
+
+  <!DOCTYPE html>
+<html>
+<head>
+    <title>Scrolling Image Bar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%; /* Assure que html et body prennent toute la largeur */
+            overflow-x: hidden; /* Empêche le défilement horizontal du body */
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centre le copyright en dessous */
+        }
+
+        .scrolling-bar {
+            height: 5cm;
+            width: 100%; /* Assure que la barre prend toute la largeur du parent (body) */
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            overflow-x: hidden;
+            display: flex;
+            align-items: center; /* Centre l'image verticalement */
+            background-color: rgba(173, 216, 230, 0.3); /* Bleu clair transparent */
+            position: relative; /* Pour positionner l'image absolument à l'intérieur */
+            border: 1mm solid transparent;
+            border-image: linear-gradient(to right, blue, yellow, red) 1;
+            box-sizing: border-box; /* Inclut la bordure dans le calcul de la largeur */
+        }
+
+        .scrolling-image {
+            height: 80%; /* Ajuster la hauteur de l'image dans la barre */
+            position: absolute;
+            left: 0; /* Initial position */
+        }
+
+        .copyright-notice {
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.9em;
+            margin-top: 1mm; /* Place le copyright 1mm après la hauteur de la barre */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scrolling-bar" id="scrollingBar">
+        <img src="https://github.com/HansHugoHMB/Images/blob/main/LPH.png?raw=true" alt="Image Défilante" class="scrolling-image" id="scrollingImage">
+    </div>
+
+    <div class="copyright-notice">
+        &copy; 2025 HMB-TECH –– TOUT DROITS RÉSERVÉS
+    </div>
+
+    <script>
+        const scrollingBar = document.getElementById('scrollingBar');
+        const scrollingImage = document.getElementById('scrollingImage');
+
+        let imagePosition = 0;
+        const speed = 2; // Ajuster pour la vitesse de défilement
+        let direction = 1; // 1 pour droite, -1 pour gauche
+
+        function moveImage() {
+            const barWidth = scrollingBar.offsetWidth;
+            const imageWidth = scrollingImage.offsetWidth;
+
+            imagePosition += speed * direction;
+
+            // Vérifier si l'image atteint le bord droit
+            if (imagePosition > barWidth - imageWidth) {
+                imagePosition = barWidth - imageWidth;
+                direction = -1;
+            }
+
+            // Vérifier si l'image atteint le bord gauche
+            if (imagePosition < 0) {
+                imagePosition = 0;
+                direction = 1;
+            }
+
+            scrollingImage.style.left = imagePosition + 'px';
+        }
+
+        setInterval(moveImage, 20); // Ajuster l'intervalle pour une animation plus fluide
+    </script>
+</body>
+</html>
