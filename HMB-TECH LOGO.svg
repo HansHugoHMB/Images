@@ -1,6 +1,32 @@
 <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
  width="683.000000pt" height="464.000000pt" viewBox="0 0 683.000000 464.000000"
  preserveAspectRatio="xMidYMid meet">
+<style>
+  path {
+    stroke: #131f4f;
+    stroke-width: 90;          /* encore plus épais */
+    fill: none;
+    stroke-dasharray: 10000;   /* longueur totale à ajuster selon tes paths */
+    stroke-dashoffset: 1000;
+    animation: draw 10s linear infinite;
+  }
+
+  @keyframes draw {
+    0%   { stroke-dashoffset: 5000; }  /* invisible (non tracé) */
+    50% { stroke-dashoffset: 0; }     /* tout est dessiné */
+    100% { stroke-dashoffset: 5000; }  /* tout est effacé */
+  }
+
+  /* Séquencement automatique : chaque path démarre avec un léger délai */
+  svg {
+    counter-reset: path-counter;
+  }
+  path {
+    counter-increment: path-counter;
+    --i: counter(path-counter);
+    animation-delay: calc((var(--i) - 1) * (5s / 69)); /* chaque path a son décalage dans la phase d'apparition */
+  }
+</style>
 <metadata>
 Created by potrace 1.16, written by Peter Selinger 2001-2019
 </metadata>
